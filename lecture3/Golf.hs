@@ -5,7 +5,7 @@ import Control.Category ((>>>))
 -- skips "hello" => ["hello!","el!","l!","l","o","!"]
 -- skips [True, False] => [[True, False], [False]]
 skips :: [a] -> [[a]]
---skips l = map (\n -> everyn n l) [1..(length l)]
+skips l = map (\n -> everyn n l) [1..(length l)]
 
 everyn :: Int -> [a] -> [a]
 everyn n = map head .
