@@ -1,5 +1,9 @@
+{-# LANGUAGE FlexibleInstances #-}
+
+import Control.Applicative
 import ExprT
 import Parser (parseExp)
+import qualified Data.Map as M
 
 eval :: ExprT -> Integer
 eval (Lit n) = n
@@ -50,8 +54,3 @@ testInteger = testExp :: Maybe Integer
 testBool    = testExp :: Maybe Bool
 testMM      = testExp :: Maybe MinMax
 testSat     = testExp :: Maybe Mod7
-
-class HasVars a where
-  var :: String -> a
-
-
