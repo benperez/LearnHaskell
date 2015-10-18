@@ -1,4 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS_GHC -fno-warn-missing-methods #-}
 
 import Data.List (unfoldr)
 
@@ -46,14 +48,40 @@ streamFromSeed f x = Cons x (streamFromSeed f (f x))
 interleaveStreams :: Stream a -> Stream a -> Stream a
 interleaveStreams (Cons x xs) ys = Cons x (interleaveStreams ys xs)
 
+streamZip :: (a -> a -> a) -> Stream a -> Stream a -> Stream a
+streamZip f (Cons x xs) (Cons y ys) = Cons (f x y) (streamZip f xs ys)
+
+streamFilter :: (a -> Bool) -> Stream a -> Stream a
+streamFilter f (Cons x xs) = case f x of
+  True  -> Cons x (streamFilter f xs)
+  False -> streamFilter f xs
+
 -- Stream implementations
 
 nats :: Stream Integer
 nats = streamFromSeed (+ 1) 0
 
 --0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, ...
---0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, ...
 ruler :: Stream Integer
 ruler = go 0
   where
     go n = interleaveStreams (streamRepeat n) (go (n + 1))
+
+x :: Stream Integer
+x = Cons 0 (Cons 1 (streamRepeat 0))
+
+instance Num (Stream Integer) where
+  fromInteger n = Cons n (streamRepeat 0)
+  negate = streamMap negate
+  (+) = streamZip (+)
+  (Cons a0 aprime) * bs@(Cons b0 bprime) = Cons (a0 * b0)
+                                                (streamZip (+)
+                                                           (streamMap (*a0) bprime)
+                                                           (aprime * bs))
+
+instance Fractional (Stream Integer) where
+  as@(Cons a0 aprime) / bs@(Cons b0 bprime) = Cons (quot a0 b0)
+                                                   (streamMap (* (quot 1 b0))
+                                                              (aprime - (as / bs) * bprime))
+
+fibs3 = x / (1 - x - x^2)
