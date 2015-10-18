@@ -85,3 +85,18 @@ instance Fractional (Stream Integer) where
                                                               (aprime - (as / bs) * bprime))
 
 fibs3 = x / (1 - x - x^2)
+
+-- Matrix fibonaccis
+data Matrix = Matrix ((Integer, Integer), (Integer, Integer))
+  deriving (Show)
+
+toTuples :: Matrix -> ((Integer, Integer), (Integer, Integer))
+toTuples (Matrix m) = m
+
+instance Num Matrix where
+  Matrix ((a, b), (c, d)) * Matrix ((e, f), (g, h)) =
+    Matrix ((a*e + b*g, a*f + b*h), (c*e + d*g, c*f + d*h))
+
+fib4 :: Integer -> Integer
+fib4 0 = 0
+fib4 n = snd $ fst $ toTuples $ ((Matrix ((1, 1), (1, 0))) ^ n)
