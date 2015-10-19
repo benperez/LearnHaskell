@@ -61,7 +61,6 @@ streamFilter f (Cons x xs) = case f x of
 nats :: Stream Integer
 nats = streamFromSeed (+ 1) 0
 
---0, 1, 0, 2, 0, 1, 0, 3, 0, 1, 0, 2, 0, 1, 0, 4, ...
 ruler :: Stream Integer
 ruler = go 0
   where
@@ -86,7 +85,7 @@ instance Fractional (Stream Integer) where
 
 fibs3 = x / (1 - x - x^2)
 
--- Matrix fibonaccis
+-- Matrix fibonacci sequences
 data Matrix = Matrix ((Integer, Integer), (Integer, Integer))
   deriving (Show)
 
