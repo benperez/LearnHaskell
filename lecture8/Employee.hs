@@ -1,6 +1,8 @@
 module Employee where
 
-import           Data.Tree
+import Data.Monoid
+import Data.Tree
+import Control.Applicative ((<$>), (<*>))
 
 -- Employee names are represented by Strings.
 type Name = String
@@ -50,3 +52,31 @@ data GuestList = GL [Employee] Fun
 
 instance Ord GuestList where
   compare (GL _ f1) (GL _ f2) = compare f1 f2
+
+glCons :: Employee -> GuestList -> GuestList
+glCons e (GL es fun) = GL (e : es) (fun + empFun e)
+
+instance Monoid GuestList where
+  mempty = GL [] 0
+  mappend (GL emps1 fun1) (GL emps2 fun2) = GL (emps1 ++ emps2) (fun1 + fun2)
+
+moreFun :: GuestList -> GuestList -> GuestList
+moreFun a b
+  | b > a     = b
+  | otherwise = a
+
+treeFold :: b -> (b -> a -> [b] -> b) -> Tree a -> b
+treeFold e f Node {subForest=children, rootLabel=label} = f e label (map (treeFold e f) children)
+
+--addFun :: Integer -> Employee -> [Integer] -> Integer
+--addFun acc Emp{empFun=newEmpFun} funs = foldl (+) 0 $ acc : newEmpFun : funs
+
+nextLevel :: Employee -> [(GuestList, GuestList)] -> (GuestList, GuestList)
+nextLevel emp glPairs = (glCons emp bestWith, bestWithout)
+  where
+    moreFunTuple (a, b) (c, d) = ((moreFun a c), (moreFun b d))
+    (bestWith, bestWithout) = foldl1 moreFunTuple glPairs
+
+--maxFun :: Tree Employee -> GuestList
+--maxFun 
+
