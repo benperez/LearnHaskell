@@ -57,14 +57,33 @@ first :: (a -> b) -> (a,c) -> (b,c)
 first f (x, y) = (f x, y)
 
 instance Functor Parser where
-  fmap f p = let g s = fmap (first f) (runParser p s) in Parser {runParser = g}
+  -- fmap :: (a -> b) -> Parser a -> Parser b
+  fmap f p = let g s = fmap (first f) (runParser p s) in Parser g
 
 instance Applicative Parser where
-  pure a = let f s = Just (a, s) in Parser {runParser = f}
-  --p1 <*> p2 = Parser {runParser = f}
-  --  where
-  --    f s = 
-  --    --maybeRes1 :: Maybe (a, String)
-  --    maybeRes1 = runParser p1 s
-  --    res2 = runParser p2 s
+  -- pure :: a -> Parser a
+  pure a = let f s = Just (a, s) in Parser f
+  --(<*>) :: Parser (a -> b) -> Parser a -> Parser b
+  p1 <*> p2 = Parser f
+    where
+      f s = do (g, remainder) <- runParser p1 s
+               (a, result) <- runParser p2 remainder
+               return (g a, result)
 
+abParser :: Parser (Char, Char)
+abParser = (,) <$> char 'a' <*> char 'b'
+
+abParser_ :: Parser ()
+abParser_ = pure () <* char 'a' <* char 'b'
+
+intPair :: Parser [Integer]
+intPair = (\x y -> [x, y]) <$> posInt <* char ' '  <*> posInt
+
+instance Alternative Parser where
+  -- empty :: Parser a
+  empty = let f = const Nothing in Parser f
+  -- (<|>) :: Parser a -> Parser a -> Parser a
+  p1 <|> p2 = let f s = (runParser p1 s) <|> (runParser p2 s) in Parser f
+
+intOrUppercase :: Parser ()
+intOrUppercase = pure () <* posInt <|> (pure () <* (satisfy isUpper))
