@@ -50,5 +50,13 @@ data SExpr = A Atom
 parseAtom :: Parser Atom
 parseAtom = (N <$> posInt) <|> (I <$> ident)
 
---parseSExpr :: Parser SExpr
---parseSExpr = (N <$> posInt) <|> ident
+stripParens :: Parser a -> Parser a
+stripParens p = (char '(') *> stripParens p <* (char ')') <|> p
+
+parseSExpr :: Parser SExpr
+parseSExpr = ((Comb . map A) <$> parenAtoms) <|>
+             (A <$> parenAtom)
+  where
+    parenAtom = stripParens (spaces *> parseAtom)
+    parenAtoms = stripParens (oneOrMore (spaces *> parseAtom))
+    parseRecursive = stripParens (oneOrMore (spaces *> parseSExpr))
