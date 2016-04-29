@@ -51,12 +51,11 @@ parseAtom :: Parser Atom
 parseAtom = (N <$> posInt) <|> (I <$> ident)
 
 stripParens :: Parser a -> Parser a
-stripParens p = (char '(') *> stripParens p <* (char ')') <|> p
+stripParens p = (char '(') *> p <* (char ')')
+
+stripSpaces :: Parser a -> Parser a
+stripSpaces p = spaces *> p <* spaces
 
 parseSExpr :: Parser SExpr
-parseSExpr = ((Comb . map A) <$> parenAtoms) <|>
-             (A <$> parenAtom)
-  where
-    parenAtom = stripParens (spaces *> parseAtom)
-    parenAtoms = stripParens (oneOrMore (spaces *> parseAtom))
-    parseRecursive = stripParens (oneOrMore (spaces *> parseSExpr))
+parseSExpr = (Comb <$> (stripParens (oneOrMore (stripSpaces parseSExpr)))) <|>
+             (A <$> parseAtom)
