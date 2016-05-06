@@ -1,3 +1,5 @@
+import Control.Applicative ((<$>))
+import Control.Monad (liftM2)
 import Data.List (genericLength, partition, sort)
 
 type Die = Int
@@ -56,6 +58,31 @@ evThreeRolls = let
                  bestEv = foldl1 min . ([one, two, three] <*>) . pure . sortRoll
                in
                  average $ map bestEv threeRolls
+
+--generates all possible combinations of n die.
+--getNRolls 1 => [[1],[2],[3],[4],[5],[6]]
+--getNRolls 2 => [[1,1],[1,2],[1,3], ...etc]
+--getNRolls 3 => [[1,1,1],[1,1,2], ...etc.
+getNRolls :: Int -> [[Die]]
+getNRolls n = map (map score) $ iterate (liftM2 (:) [1..6]) [[]] !! (n)
+
+--Todo, optimize this to be tail-recursive
+evNRolls :: Int -> Float
+evNRolls 0 = 0
+evNRolls 1 = 3.0
+evNRolls 2 = 4.388889
+evNRolls 3 = 5.233807
+evNRolls 4 = 5.8339067
+evNRolls 5 = 6.253614
+evNRolls 6 = 6.541876
+evNRolls 7 = 6.733568
+evNRolls 8 = 6.91832
+evNRolls n = let
+               sortRoll    = map fromIntegral . sort
+               pull j roll = (sum (take j roll)) + evNRolls (n - j)
+               bestEV roll = foldl1 min (pull <$> [1..n] <*> [sortRoll roll])
+             in
+               average $ map bestEV $ getNRolls n
 
 --  Strategy for 1 roll 
 --    None, take the die you roll

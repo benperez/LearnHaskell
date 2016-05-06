@@ -3,6 +3,7 @@
 module Risk where
 
 import Control.Monad.Random
+import Data.List (sort)
 
 ------------------------------------------------------------
 -- Die values
@@ -31,7 +32,20 @@ data Battlefield = Battlefield { attackers :: Army
   deriving (Show)
 
 battle :: Battlefield -> Rand StdGen Battlefield
-battle Battlefield {attackers=nAttack, defenders=nDefend} = do
-  d1 <- die
-  d2 <- die
-  return Battlefield {attackers=(unDV d1), defenders=(unDV d2)}
+battle (Battlefield nAttack nDefend) = do
+  attackDie <- sequence (replicate nAttack die)
+  defendDie <- sequence (replicate nDefend die)
+  let nToBattle = min nAttack nDefend
+  let sortedAttackDie = reverse . take nToBattle . sort $ attackDie
+  let sortedDefendDie = reverse . take nToBattle . sort $ defendDie
+  let attackerWins = zipWith didAttackerWin sortedAttackDie sortedDefendDie
+  let nAttackerWins = length $ filter id attackerWins
+  let nAttackerLosses = nToBattle - nAttackerWins
+  let nRemainingAttackers = nAttack - nAttackerLosses
+  let nRemainingDefenders = nDefend - nAttackerWins
+  return Battlefield {attackers=nRemainingAttackers, defenders=nRemainingDefenders}
+  where
+    didAttackerWin attacker defender = case attacker `compare` defender of
+      GT -> True
+      EQ -> False
+      LT -> False
