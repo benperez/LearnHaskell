@@ -1,4 +1,4 @@
-import Data.List (group, sort)
+import Data.List (group, reverse, sort, transpose)
 
 allUnique :: String -> Bool
 allUnique = any ((>1) . length) . group . sort
@@ -12,21 +12,14 @@ escapeSpaces (x:xs)
   | x == ' '  = '%':'2':'0':(escapeSpaces xs)
   | otherwise = x:(escapeSpaces xs)
 
---rotate an M by N matrix 90 degrees
-newtype Matrix = Matrix { bytes :: [[Int]]} 
+numberToSound :: Int -> String
+numberToSound n | div3 && div5 = "fizzbuzz"
+                | div3         = "fizz"
+                | div5         = "buzz"
+                | otherwise    = show n
+  where
+    div3 = n `mod` 3 == 0
+    div5 = n `mod` 5 == 0
 
-rotateMatrix :: Matrix -> Matrix 
-rotateMatrix = 
-
-
---regular jawn
-[[1,2],
- [3,4]]
-
---transposed jawn
-[[1,3],
- [2,4]]
-
---rotated jawn
-[[3,1],
- [4,2]]
+main :: IO ()
+main = mapM_ (putStrLn . numberToSound) [1..15]
